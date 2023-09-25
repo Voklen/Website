@@ -10,7 +10,7 @@
 	--dark-shadow: #979189;
 	--text-high: #15163d;
 	--dark-percentage: 0%;
-	--theme-animation-duration: 2s;
+	--theme-animation-duration: 1s;
 }
 
 html, body {
@@ -67,12 +67,12 @@ h2, h3, p, ul {
 
 .shadow {
 	/* Positioning */
-	margin: 2%;
+	margin: 4%;
 	margin-top: 5%;
 	display: flex;
 	flex-direction: column;
 	/* Visuals */
-	border-radius: 45px;
+	border-radius: 35px;
 	box-shadow: 18px 18px 36px var(--dark-shadow),
 		-18px -18px 36px var(--light-shadow);
 	z-index: 1;
@@ -84,7 +84,7 @@ h2, h3, p, ul {
 	display: flex;
 	flex-direction: column;
 	/* Visuals */
-	border-radius: 45px;
+	border-radius: 35px;
 	background: var(--card-background);
 	z-index: 2;
 }
@@ -159,7 +159,7 @@ h2, h3, p, ul {
 
 /* The switch - the box around the slider */
 .switch {
-	--slide-width: 160px;
+	--slide-width: 140px;
 	--slide-hight: 70px;
 	--ball-diameter: 52px;
 	--ball-insert: calc((var(--slide-hight) - var(--ball-diameter)) / 2);
@@ -180,14 +180,9 @@ h2, h3, p, ul {
 	cursor: pointer;
 	inset: 0;
 	/* Visuals */
-	background-image: url("media/images/switch/day.svg");
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: 150%;
 	border-radius: var(--slide-hight);
 	box-shadow: inset 2px 2px 4px var(--dark-shadow);
-	/* Background transitions not implemented in Firefox yet */
-	transition: background var(--theme-animation-duration);
+	overflow: hidden;
 }
 
 .slider:before {
@@ -200,15 +195,16 @@ h2, h3, p, ul {
 	/* Visuals */
 	background-color: #e2e239;
 	transition-duration: var(--theme-animation-duration);
+	transition-timing-function: ease-in-out;
 	border-radius: 50%;
 	box-shadow: 2px 2px 2px var(--dark-shadow);
 }
 
-/* When checked */
-input:checked+.slider {
-	background-image: url("media/images/switch/night.svg");
+.slider > object {
+	width: 100%;
 }
 
+/* When checked */
 input:checked+.slider::before {
 	background-color: #ccd1e9;
 }

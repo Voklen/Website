@@ -24,75 +24,93 @@
 	for the JavaScript code in this page.
 */
 
-const FRAMERATE = 120
-const r = document.querySelector(":root");
+const FRAMERATE = 60
+const r = document.querySelector(':root')
+const anim_duration = parseInt(
+	getProperty('--theme-animation-duration').slice(0, -1)
+)
 
-// I want to replace this with @property in the CSS when/if it is supported (hopefully)
-function switchTheme() {
-	if (document.getElementById("switch-checkbox").checked) {
+async function switchTheme() {
+	const toggle = document.getElementById('switch-checkbox')
+	toggle.disabled = 'true'
+	if (toggle.checked) {
 		// Dark mode
-		fadeColour('--main-background', '#1b1e27')
-		fadeColour("--card-background", "#181b23");
-		fadeColour("--light-shadow", "#d34ccc");
-		fadeColour("--dark-shadow", "#3eb3bb");
-		fadeColour("--text-high", "#dad7d6");
-		fadePercentage("--dark-percentage", "100");
+		let lerp_funcs = [
+			fadeColour('--main-background', '#222225'),
+			fadeColour('--card-background', '#222225'),
+			fadeColour('--light-shadow', '#2c2c30'),
+			fadeColour('--dark-shadow', '#18181a'),
+			fadeColour('--text-high', '#dad7d6'),
+			fadePercentage('--dark-percentage', '100'),
+		]
+		runLerpFuncs(lerp_funcs)
+		triggerAnimation('dayToNight')
 	} else {
 		// Light mode
-		fadeColour("--main-background", "#f2ebeb");
-		fadeColour("--card-background", "#fff7f7");
-		fadeColour("--light-shadow", "#d6d6d6");
-		fadeColour("--dark-shadow", "#979189");
-		fadeColour("--text-high", "#15163D");
-		fadePercentage("--dark-percentage", "0");
+		let lerp_funcs = [
+			fadeColour('--main-background', '#f2ebeb'),
+			fadeColour('--card-background', '#fff7f7'),
+			fadeColour('--light-shadow', '#d6d6d6'),
+			fadeColour('--dark-shadow', '#979189'),
+			fadeColour('--text-high', '#15163D'),
+			fadePercentage('--dark-percentage', '0'),
+		]
+		runLerpFuncs(lerp_funcs)
+		triggerAnimation('nightToDay')
 	}
+	await sleep(anim_duration)
+	toggle.disabled = ''
 }
 
 function fadeColour(css_var, target) {
-	const original = getProperty(css_var).trim();
-	const orig_r = ("0x" + original[1] + original[2]);
-	const orig_g = ("0x" + original[3] + original[4]);
-	const orig_b = ("0x" + original[5] + original[6]);
-	const target_r = ("0x" + target[1] + target[2]);
-	const target_g = ("0x" + target[3] + target[4]);
-	const target_b = ("0x" + target[5] + target[6]);
+	const original = getProperty(css_var).trim()
+	const orig_r = '0x' + original[1] + original[2]
+	const orig_g = '0x' + original[3] + original[4]
+	const orig_b = '0x' + original[5] + original[6]
+	const target_r = '0x' + target[1] + target[2]
+	const target_g = '0x' + target[3] + target[4]
+	const target_b = '0x' + target[5] + target[6]
 
-	const id = setInterval(frame, 1 / FRAMERATE);
-	const anim_duration = parseInt(getProperty("--theme-animation-duration").slice(0, -1));
-
-	let lerp_value = 0;
-	function frame() {
-		if (lerp_value > 0.99999) {
-			clearInterval(id);
-			r.style.setProperty(css_var, target);
-			return;
-		}
+	return (lerp_value) => {
 		const interpolated = to_hex(
 			lerp(orig_r, target_r, lerp_value), // Lerp the red value
 			lerp(orig_g, target_g, lerp_value), // Lerp the green value
-			lerp(orig_b, target_b, lerp_value)  // Lerp the blue value
+			lerp(orig_b, target_b, lerp_value) // Lerp the blue value
 		)
-		r.style.setProperty(css_var, interpolated);
-		lerp_value += (1 / FRAMERATE) / anim_duration;
+		r.style.setProperty(css_var, interpolated)
 	}
 }
 
 function fadePercentage(css_var, target) {
-	const original = getProperty(css_var).slice(0, -1);
+	const original = getProperty(css_var).slice(0, -1)
+	return (lerp_value) => {
+		const interpolated = lerp(original, target, lerp_value)
+		r.style.setProperty(css_var, interpolated + '%')
+	}
+}
 
-	const id = setInterval(frame, 1 / FRAMERATE);
-	const anim_duration = parseInt(getProperty("--theme-animation-duration").slice(0, -1));
-
-	let lerp_value = 0;
+function runLerpFuncs(lerp_funcs) {
+	let id = setTimeout(frame, 1000 / FRAMERATE)
+	let lerp_value = 0
 	function frame() {
 		if (lerp_value > 0.99999) {
-			clearInterval(id);
-			r.style.setProperty(css_var, target + "%");
-			return;
+			clearTimeout(id)
+			return
 		}
-		const interpolated = lerp(original, target, lerp_value)
-		r.style.setProperty(css_var, interpolated + "%");
-		lerp_value += (1 / FRAMERATE) / anim_duration;
+		for (func of lerp_funcs) {
+			func(lerp_value)
+		}
+		lerp_value += 1 / FRAMERATE / anim_duration
+		id = setTimeout(frame, 1000 / FRAMERATE)
+	}
+}
+
+function triggerAnimation(anim_name) {
+	const toggle = document.getElementById('switch-svg').contentDocument
+
+	const animation_elements = toggle.getElementsByClassName(anim_name)
+	for (element of animation_elements) {
+		element.beginElement()
 	}
 }
 
@@ -102,14 +120,22 @@ function lerp(start, end, t) {
 }
 
 function convert(integer) {
-	const str = parseInt(integer, 10).toString(16);
-	return str.length == 1 ? "0" + str : str;
+	const str = parseInt(integer, 10).toString(16)
+	return str.length == 1 ? '0' + str : str
 }
 
 function to_hex(r, g, b) {
-	return "#" + convert(r) + convert(g) + convert(b);
+	return '#' + convert(r) + convert(g) + convert(b)
 }
 
 function getProperty(property) {
-	return getComputedStyle(document.documentElement).getPropertyValue(property);
+	return getComputedStyle(document.documentElement).getPropertyValue(property)
+}
+
+function sleep(s) {
+	return sleep_ms(s * 1000)
+}
+
+function sleep_ms(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
